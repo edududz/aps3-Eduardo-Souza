@@ -1,4 +1,4 @@
-# APS 3 — AutoFlow Monitor
+# APS 3 — Eduardo de Souza
 ## Cenário: Rastreamento de peças e testes de estanqueidade
 
 **Ator principal:** Analista de Qualidade  

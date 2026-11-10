@@ -1,0 +1,45 @@
+@startuml
+title AutoFlow Monitor — Consulta do histórico de rastreabilidade de uma peça
+autonumber
+
+actor "Analista de Qualidade" as Analista
+boundary "Tela de Rastreabilidade" as Tela
+control "RastreabilidadeController" as Controller
+control "RastreabilidadeService" as Service
+database "PecaRepository" as PecaRepo
+database "CicloUsinagemRepository" as CicloRepo
+database "TesteEstanqueidadeRepository" as TesteRepo
+
+Analista -> Tela : informarIdentificadorPeca(idPeca)
+Tela -> Controller : consultarHistorico(idPeca)
+activate Controller
+
+Controller -> Service : obterHistoricoPeca(idPeca)
+activate Service
+
+Service -> PecaRepo : buscarPorIdentificador(idPeca)
+PecaRepo --> Service : PecaDTO ou null
+
+alt peça não encontrada
+    Service --> Controller : ResultadoConsultaDTO(NAO_ENCONTRADA)
+    Controller --> Tela : respostaNaoEncontrada()
+    Tela --> Analista : exibirMensagem("Peça não encontrada")
+else peça encontrada
+    par buscar ciclos de usinagem
+        Service -> CicloRepo : listarPorPeca(idPeca)
+        CicloRepo --> Service : Lista<CicloUsinagemDTO>
+    else buscar testes e retestes
+        Service -> TesteRepo : listarPorPecaEmOrdemCronologica(idPeca)
+        TesteRepo --> Service : Lista<TesteEstanqueidadeDTO>
+    end
+
+    Service -> Service : correlacionarEventos(ciclos, testes)
+    Service -> Service : validarCompletudeDoHistorico()
+    Service --> Controller : HistoricoPecaDTO
+    Controller --> Tela : apresentarHistorico(HistoricoPecaDTO)
+    Tela --> Analista : exibirLinhaDoTempo(ciclos, testes, retestes)
+end
+
+deactivate Service
+deactivate Controller
+@enduml

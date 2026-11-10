@@ -1,0 +1,40 @@
+@startuml
+title AutoFlow Monitor — Atividade de consulta de rastreabilidade
+
+|Analista de Qualidade|
+start
+:Informar identificador da peça;
+:Solicitar consulta do histórico;
+
+|Aplicação AutoFlow Monitor|
+:Validar formato do identificador;
+if (Identificador válido?) then (Sim)
+  :Localizar peça;
+  if (Peça cadastrada?) then (Sim)
+    fork
+      :Consultar ciclos de usinagem;
+      :Ordenar ciclos por data/hora;
+    fork again
+      :Consultar testes de estanqueidade;
+      :Incluir testes iniciais e retestes;
+      :Ordenar testes por data/hora;
+    end fork
+    :Relacionar eventos à peça;
+    :Verificar existência de lacunas ou dados incompletos;
+    :Montar histórico consolidado;
+  else (Não)
+    :Preparar retorno "Peça não encontrada";
+  endif
+else (Não)
+  :Preparar retorno "Identificador inválido";
+endif
+
+|Analista de Qualidade|
+:Visualizar resultado da consulta;
+if (Histórico localizado?) then (Sim)
+  :Analisar ciclos, testes e retestes;
+else (Não)
+  :Visualizar motivo da ausência do histórico;
+endif
+stop
+@enduml

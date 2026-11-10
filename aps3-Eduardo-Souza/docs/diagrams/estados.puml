@@ -1,0 +1,48 @@
+@startuml
+title AutoFlow Monitor — Estados do histórico de rastreabilidade de uma peça
+
+[*] --> NaoConsultado
+
+NaoConsultado : entry / limparResultadoAnterior()
+NaoConsultado : do / aguardarIdentificador()
+NaoConsultado : exit / prepararConsulta()
+
+NaoConsultado --> Validando : consultar(idPeca) [idPeca informado] / iniciarConsulta()
+
+state Validando {
+  [*] --> VerificandoIdentificador
+  VerificandoIdentificador : entry / validarFormato()
+  VerificandoIdentificador : do / localizarCadastroDaPeca()
+  VerificandoIdentificador : exit / registrarResultadoDaValidacao()
+}
+
+Validando --> ConsultaInvalida : validacaoConcluida [formatoInvalido] / informarErro()
+Validando --> NaoEncontrada : validacaoConcluida [pecaNaoCadastrada] / informarAusencia()
+Validando --> CarregandoHistorico : validacaoConcluida [pecaCadastrada] / buscarEventos()
+
+CarregandoHistorico : entry / iniciarCarregamento()
+CarregandoHistorico : do / consultarCiclosETestes()
+CarregandoHistorico : exit / consolidarEventos()
+
+CarregandoHistorico --> HistoricoDisponivel : carregamentoConcluido [existemEventos] / montarLinhaDoTempo()
+CarregandoHistorico --> HistoricoSemEventos : carregamentoConcluido [nenhumEvento] / registrarConsultaSemEventos()
+CarregandoHistorico --> FalhaConsulta : erroDeLeitura [falhaTecnica] / registrarFalha()
+
+HistoricoDisponivel : entry / exibirHistorico()
+HistoricoDisponivel : do / permitirInspecaoDosRegistros()
+HistoricoDisponivel : exit / liberarVisualizacao()
+
+HistoricoSemEventos : entry / exibirAvisoSemEventos()
+HistoricoSemEventos : do / aguardarNovaConsulta()
+HistoricoSemEventos : exit / limparAviso()
+
+ConsultaInvalida : entry / exibirIdentificadorInvalido()
+NaoEncontrada : entry / exibirPecaNaoEncontrada()
+FalhaConsulta : entry / exibirFalhaERegistrarLog()
+
+HistoricoDisponivel --> [*] : encerrarConsulta
+HistoricoSemEventos --> [*] : encerrarConsulta
+ConsultaInvalida --> [*] : encerrarConsulta
+NaoEncontrada --> [*] : encerrarConsulta
+FalhaConsulta --> [*] : encerrarConsulta
+@enduml
